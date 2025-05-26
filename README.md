@@ -17,7 +17,7 @@ testing, and performance optimization.
 
 ## Assumptions
 - Customer segments and promotion rules are predefined and static for this implementation.
-- Order status transitions follow a linear workflow (e.g., Created → Processing → Shipped → Completed).
+- Order status transitions follow a linear workflow (i.e, Pending → Confirmed → Shipped → Delivered → Returned → Cancelled → Closed).
 - Analytics calculations are based on available in-memory data.
 - No external database or persistent storage is used; all data is in-memory for demonstration.
 - Authentication and authorization are out of scope for this assignment.
@@ -25,7 +25,7 @@ testing, and performance optimization.
 ## Features
 - **Discounting System:** Applies different promotion rules based on customer segments and order history.
 - **Order Status Tracking:** Supports appropriate state transitions for order statuses.
-- **Order Analytics Endpoint:** Returns analytics such as average order value, fulfillment time, and more.
+- **Order Analytics Endpoint:** Returns analytics such as number of orders in last 7 days, average fulfillment time, and more.
 - **Performance Optimizations:** Includes caching for analytics data and batch loading to avoid N+1 query issues.
 
 ## Getting Started
