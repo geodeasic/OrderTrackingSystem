@@ -7,6 +7,7 @@ using Orders.Infrastructure.Persistence.InMemory;
 using Orders.Infrastructure.Promotions;
 using Orders.Infrastructure.Services.InMemory;
 using System.Reflection;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Orders.ApiService.ServiceInstallers
 {
@@ -26,7 +27,11 @@ namespace Orders.ApiService.ServiceInstallers
             // Register In-Memory Repositories and Services
             services.AddSingleton<IOrderRepository, InMemoryOrderRepository>();
             services.AddSingleton<ICustomerProfileService, InMemoryCustomerProfileService>();
-            services.AddSingleton<IOrderAnalyticsService, OrderAnalyticsService>();
+            services.AddMemoryCache(); // Register IMemoryCache
+            services.AddSingleton<IOrderAnalyticsService, OrderAnalyticsService>(sp =>
+                new OrderAnalyticsService(
+                    sp.GetRequiredService<IOrderRepository>(),
+                    sp.GetRequiredService<IMemoryCache>()));
             services.AddSingleton<IOrderStatusService, OrderStatusService>();
             services.AddSingleton<IPromotionEngine, DefaultPromotionEngine>();
             services.AddSingleton<IOrderQueryService, OrderQueryService>();

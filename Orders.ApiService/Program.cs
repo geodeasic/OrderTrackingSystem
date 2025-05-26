@@ -26,6 +26,7 @@ public class Program
             options.SchemaFilter<CustomerSegmentSchemaFilter>();
         });
         builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
+        builder.Services.AddMemoryCache(); // Register IMemoryCache
 
         var app = builder.Build();
 

@@ -47,18 +47,17 @@ namespace Orders.Infrastructure.Services.InMemory
             var orders = (await _orderRepository.GetAllAsync()).ToList();
             var result = new List<OrderDto>(orders.Count);
 
+            // Batch load all customer profiles
+            var customerIds = orders.Select(o => o.CustomerId).Distinct();
+            var profiles = await _customerProfileService.GetProfilesAsync(customerIds);
+
             foreach (var order in orders)
             {
-                var customerProfile = await _customerProfileService.GetProfileAsync(order.CustomerId);
+                profiles.TryGetValue(order.CustomerId, out var customerProfile);
                 var potentialPromotions = new List<string>();
 
-                if (customerProfile != null)
-                {
-                    // Evaluate all rules using the promotion engine
-                    var promoResult = _promotionEngine.ApplyPromotions(order, customerProfile
-                        ?? throw new InvalidOperationException("Customer profile is null"));
-                    potentialPromotions = [.. promoResult.AppliedPromotions];
-                }
+                var promoResult = _promotionEngine.ApplyPromotions(order, customerProfile);
+                potentialPromotions = [.. promoResult.AppliedPromotions];
 
                 result.Add(new OrderDto
                 {

@@ -18,5 +18,13 @@ namespace Orders.Application.Contract.Services
         /// <returns>A task that represents the asynchronous operation. The task result contains the customer's profile if found;
         /// otherwise, <see langword="null"/>.</returns>
         Task<CustomerProfile?> GetProfileAsync(Guid customerId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously retrieves the profiles of multiple customers by their unique identifiers.
+        /// </summary>
+        /// <param name="customerIds">A collection of customer IDs to retrieve profiles for.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a dictionary mapping customer IDs to their profiles.</returns>
+        Task<Dictionary<Guid, CustomerProfile>> GetProfilesAsync(IEnumerable<Guid> customerIds, CancellationToken cancellationToken = default);
     }
 }

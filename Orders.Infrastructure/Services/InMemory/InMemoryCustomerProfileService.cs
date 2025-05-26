@@ -55,6 +55,19 @@ namespace Orders.Infrastructure.Services.InMemory
             return await Task.FromResult(profile);
         }
 
+        public async Task<Dictionary<Guid, CustomerProfile>> GetProfilesAsync(IEnumerable<Guid> customerIds, CancellationToken cancellationToken = default)
+        {
+            var result = new Dictionary<Guid, CustomerProfile>();
+            foreach (var id in customerIds)
+            {
+                if (_profiles.TryGetValue(id, out var profile))
+                {
+                    result[id] = profile;
+                }
+            }
+            return await Task.FromResult(result);
+        }
+
         /// <summary>
         /// Utility method for seeding orders.
         /// </summary>

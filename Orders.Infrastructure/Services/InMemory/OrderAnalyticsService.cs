@@ -1,6 +1,7 @@
 using Orders.Application.Contract.Persistence;
 using Orders.Application.Contract.Services;
 using Orders.Domain.Dto;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Orders.Infrastructure.Services.InMemory
 {
@@ -12,9 +13,18 @@ namespace Orders.Infrastructure.Services.InMemory
     /// analytics metrics. It is designed to provide high-level insights into order trends and performance over
     /// time.</remarks>
     /// <param name="orderRepository"></param>
-    public class OrderAnalyticsService(IOrderRepository orderRepository) : IOrderAnalyticsService
+    public class OrderAnalyticsService : IOrderAnalyticsService
     {
-        private readonly IOrderRepository _orderRepository = orderRepository;
+        private readonly IOrderRepository _orderRepository;
+        private readonly IMemoryCache _cache;
+        private static readonly string CacheKey = "OrderAnalytics";
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(1);
+
+        public OrderAnalyticsService(IOrderRepository orderRepository, IMemoryCache cache)
+        {
+            _orderRepository = orderRepository;
+            _cache = cache;
+        }
 
         /// <summary>
         /// Asynchronously retrieves analytics data for orders, including average order value,  average fulfillment
@@ -55,9 +65,18 @@ namespace Orders.Infrastructure.Services.InMemory
         /// <returns>An <see cref="OrderAnalyticsDto"/> object containing the calculated analytics data.</returns>
         public async Task<OrderAnalyticsDto> GetOrderAnalyticsAsync()
         {
+            if (_cache.TryGetValue(CacheKey, out OrderAnalyticsDto cachedAnalytics))
+            {
+                return cachedAnalytics;
+            }
+
             var orders = (await _orderRepository.GetAllAsync()).ToList();
             if (orders.Count == 0)
-                return new OrderAnalyticsDto { AverageOrderValue = 0, AverageFulfillmentTimeHours = 0, AverageDailyOrders = 0, TotalOrdersLastSevenDays = 0, ReportDaysCovered = 0, AverageDiscount = 0 };
+            {
+                var emptyResult = new OrderAnalyticsDto { AverageOrderValue = 0, AverageFulfillmentTimeHours = 0, AverageDailyOrders = 0, TotalOrdersLastSevenDays = 0, ReportDaysCovered = 0, AverageDiscount = 0 };
+                _cache.Set(CacheKey, emptyResult, CacheDuration);
+                return emptyResult;
+            }
 
             var avgValue = Math.Round((double)orders.Average(o => o.TotalAmount), 2);
             var fulfilledOrders = orders.Where(o => o.FulfilledAt.HasValue).ToList();
@@ -78,7 +97,7 @@ namespace Orders.Infrastructure.Services.InMemory
             // Calculate average discount (TotalAmount - DiscountedTotal)
             double avgDiscount = Math.Round(orders.Average(o => (double)(o.TotalAmount - o.DiscountedTotal)), 2);
 
-            return new OrderAnalyticsDto
+            var analytics = new OrderAnalyticsDto
             {
                 AverageOrderValue = avgValue,
                 AverageFulfillmentTimeHours = avgFulfillment,
@@ -87,6 +106,9 @@ namespace Orders.Infrastructure.Services.InMemory
                 ReportDaysCovered = totalDays,
                 AverageDiscount = avgDiscount
             };
+
+            _cache.Set(CacheKey, analytics, CacheDuration);
+            return analytics;
         }
     }
 }
