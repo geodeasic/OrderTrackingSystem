@@ -44,7 +44,15 @@ testing, and performance optimization.
 4. **Swagger UI:**
    Visit `https://localhost:7071/swagger` for interactive API documentation.
 
-## Testing
+## Testing Approach
+### Testing Frameworks
+- Unit tests written based on xUnit and Moq for mocking dependencies.
+- Integration tests written based on xUnit and Moq for mocking dependencies.
+
+### Test Coverage
+- Unit tests focus on the discount calculation logic and order status transitions.
+- Integration tests focus the Orders API endpoint.
+
 - **Unit Tests:**
   - Located in `Orders.Domain.Tests` and `Orders.Application.Tests` projects.
 - **Integration Tests:**
